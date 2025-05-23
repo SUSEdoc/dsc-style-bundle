@@ -1,0 +1,25 @@
+---
+extends: default
+
+
+page:
+  size: A4
+  margin: 0.5in
+  orientation: portrait
+
+font:
+  catalog:
+    merge: true
+    SUSE:
+      regular: static/SUSE-Regular.ttf
+      bold: static/SUSE-Bold.ttf
+      italic: static/SUSE-Regular.ttf
+      bold_italic: static/SUSE-Bold.ttf
+
+base:
+  font-family: SUSE
+  font: regular
+
+heading:
+  font-family: SUSE
+  font: bold
