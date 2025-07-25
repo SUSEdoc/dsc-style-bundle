@@ -1,4 +1,4 @@
-<header class="header">
+{{!-- <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <div class="navbar-item">
@@ -8,17 +8,6 @@
 {{#if page.attributes.draft-preview-only}}
   <div class="draft-banner">DRAFT PREVIEW ONLY!</div>
 {{/if}}
-      {{#if env.SITE_SEARCH_PROVIDER}}
-      <div class="navbar-item search hide-for-print">
-        <div id="search-field" class="field">
-          <label class="visual-search-label" for="search-input">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-          <input label="Search" aria-label="Search" id="search-input" type="text" placeholder="Search the docs" {{#if page.home}} autofocus{{/if}}>
-          <label class="filter checkbox" style="display: none">
-            <input type="checkbox" data-facet-filter="component:{{page.component.name}}" checked> Only this project
-          </label>
-        </div>
-      </div>
-      {{/if}}
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
         <span></span>
@@ -94,3 +83,18 @@
   </nav>
   <a target=_blank"" class="survey-link" href="https://suselinux.fra1.qualtrics.com/jfe/form/SV_bEiGZbUNzLD8Tcy"> Documentation survey </a>
 </header>
+--}}
+
+
+<shared-header page-title="Pattern Library" logo-src="https://www.suse.com/assets/img/suse-white-logo-green.svg"
+          language="en" user="the name" log-in-url="#" log-out-url="#" log-out-method="DELETE" create-account-url="#"
+          forgot-password-url="#" account-settings-url="#" change-password-url="#" user-management-url="#"
+          language="en" languages='{
+              "en": { "label": "English", "url": "https://documentation.suse.com/en-us/" },
+              "de": { "label": "Deutsch", "url": "https://documentation.suse.com/de-de/" },
+              "fr": { "label": "Français", "url": "https://documentation.suse.com/fr-fr/" },
+              "es": { "label": "Español", "url": "https://documentation.suse.com/es-es/" },
+              "zh_CN": { "label": "中文", "url": "https://documentation.suse.com/zh-cn/" },
+              "pt_BR": { "label": "Português Brasileiro", "url": "https://documentation.suse.com/pt-br/" }
+          }'>
+</shared-header>

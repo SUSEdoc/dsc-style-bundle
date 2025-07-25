@@ -1342,3 +1342,10 @@ nav.pagination a {
   z-index: 3;
   text-decoration: none;
 }
+
+.home-link-dsc {
+    display: block;
+    height: 1.25rem;
+    width: 1.25rem;
+    margin: .625rem;
+}
