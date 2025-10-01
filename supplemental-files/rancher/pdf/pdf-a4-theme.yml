@@ -1,0 +1,37 @@
+---
+extends: default
+
+
+page:
+  size: A4
+  margin: 0.5in
+  orientation: portrait
+
+title-page:
+  background-image: image:images/suse-logo.svg[position=top center]
+
+font:
+  catalog:
+    merge: true
+    SUSE:
+      regular: static/SUSE-Regular.ttf
+      bold: static/SUSE-Bold.ttf
+      italic: static/SUSE-Regular.ttf
+      bold_italic: static/SUSE-Bold.ttf
+    SUSEMono:
+      regular: static/SUSEMono-Regular.ttf
+      bold: static/SUSEMono-Bold.ttf
+      italic: static/SUSEMono-Regular.ttf
+      bold_italic: static/SUSEMono-Bold.ttf
+
+base:
+  font-family: SUSE
+  font: regular
+
+heading:
+  font-family: SUSE
+  font: bold
+
+code:
+  font-family: SUSEMono
+  font: regular
