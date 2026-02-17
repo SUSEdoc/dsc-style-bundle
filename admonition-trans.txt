@@ -1,0 +1,6 @@
+en        de	      es-es	      fr	          ja	      pt-br	      zh-cn
+CAUTION	  ACHTUNG	  ATENCIÓN	  ATTENTION	    注意	    CUIDADO	    小心
+WARNING	  WARNUNG	  AVISO	      AVERTISSEMENT	警告	    ATENÇÃO	    警告
+IMPORTANT WICHTIG	  IMPORTANTE	IMPORTANT	    重要	    IMPORTANTE	重要
+TIP	      TIPP	    SUGERENCIA	ASTUCE	      ヒント	  DICA	      提示
+NOTE	    ANMERKUNG	NOTA	      NOTE	        注記	    NOTA	      注意
