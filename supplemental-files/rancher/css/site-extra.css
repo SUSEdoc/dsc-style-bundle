@@ -579,6 +579,10 @@ tr:nth-child(even) {
   background: #fdfdfd;
 }
 
+table.background-transparent tr:nth-child(even) {
+  background: transparent;
+}
+
 .doc .admonitionblock>table {
   border-collapse: unset;
 }
