@@ -25,12 +25,12 @@ const langToHreflangMapping = {
 }
 
 module.exports = (pageurl, type, nav) => {
-  if (nav.page.layout == '404') return null;
+  if (nav.page.layout === '404') return null;
   const lang = get_lang(pageurl);
-  if (type == 'hreflang') {
+  if (type === 'hreflang') {
     return langToHreflangMapping[lang] || null;
-  } else if (type == 'headerlang') {
-    if (lang.toLowerCase() == 'zh') {
+  } else if (type === 'headerlang') {
+    if (lang.toLowerCase() === 'zh') {
       return 'zh_cn';
     } else {
       return lang;
