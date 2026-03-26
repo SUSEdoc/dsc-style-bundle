@@ -119,7 +119,6 @@
   searchResultContainer.classList.add('search-result-dropdown-menu');
   searchInput.parentNode.appendChild(searchResultContainer);
   const facetFilterInput = document.querySelector('#search-field input[type=checkbox][data-facet-filter]');
-  const currentPageLanguage = getCurrentPageLanguage();
 
   function appendStylesheet (href) {
     if (!href) return
@@ -127,31 +126,6 @@
     link.rel = 'stylesheet';
     link.href = href;
     document.head.appendChild(link);
-  }
-
-  function normalizeLanguageCode (code) {
-    if (!code) return ''
-    const normalized = String(code).trim().toLowerCase().replace(/_/g, '-');
-    const base = normalized.split('-')[0];
-    if (base === 'pt') return 'pt'
-    if (base === 'zh') return 'zh'
-    return base
-  }
-
-  function getCurrentPageLanguage () {
-    const htmlLang = (document.documentElement.getAttribute('lang') || '').trim().toLowerCase();
-    if (htmlLang) return normalizeLanguageCode(htmlLang)
-    const path = (globalThis.location && globalThis.location.pathname) || '';
-    const match = path.match(/^\/[^/]+\/[^/]+\/([^/]+)\//);
-    return match ? normalizeLanguageCode(match[1]) : ''
-  }
-
-  function getDocumentLanguage (doc) {
-    const url = doc && doc.url;
-    if (!url) return ''
-    const match = url.match(/^\/[^/]+\/[^/]+\/([^/]+)\//);
-    if (match) return normalizeLanguageCode(match[1])
-    return normalizeLanguageCode(doc && doc.lang)
   }
 
   function highlightPageTitle (title, terms) {
@@ -305,25 +279,16 @@
 
   function filter (result, documents) {
     const facetFilter = facetFilterInput && facetFilterInput.checked && facetFilterInput.dataset.facetFilter;
-    let filteredResult = result;
     if (facetFilter) {
       const [field, value] = facetFilter.split(':');
-      filteredResult = result.filter((item) => {
+      return result.filter((item) => {
         const ids = item.ref.split('-');
         const docId = ids[0];
         const doc = documents[docId];
         return field in doc && doc[field] === value
-      });
+      })
     }
-    if (!currentPageLanguage) {
-      return filteredResult
-    }
-    return filteredResult.filter((item) => {
-      const ids = item.ref.split('-');
-      const docId = ids[0];
-      const doc = documents[docId];
-      return getDocumentLanguage(doc) === currentPageLanguage
-    })
+    return result
   }
 
   function search (index, documents, queryString) {

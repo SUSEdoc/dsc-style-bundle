@@ -1173,9 +1173,61 @@ div.colist.arabic {
   padding-bottom: 0.5rem;
 }
 
-/* Changed to "Previous", instead of the abbreviated "Prev" */
+/* Use the page language from the root html element for pagination labels. */
 nav.pagination .prev::before {
   content: "Previous";
+}
+nav.pagination .next::before {
+  content: "Next";
+}
+
+html[lang="de"] nav.pagination .prev::before {
+  content: "Zurück";
+}
+html[lang="de"] nav.pagination .next::before {
+  content: "Weiter";
+}
+
+html[lang="es"] nav.pagination .prev::before {
+  content: "Anterior";
+}
+html[lang="es"] nav.pagination .next::before {
+  content: "Siguiente";
+}
+
+html[lang="fr"] nav.pagination .prev::before {
+  content: "Précédent";
+}
+html[lang="fr"] nav.pagination .next::before {
+  content: "Suivant";
+}
+
+html[lang="ja"] nav.pagination .prev::before {
+  content: "前へ";
+}
+html[lang="ja"] nav.pagination .next::before {
+  content: "次へ";
+}
+
+html[lang="ko"] nav.pagination .prev::before {
+  content: "이전";
+}
+html[lang="ko"] nav.pagination .next::before {
+  content: "다음";
+}
+
+html[lang="pt_br"] nav.pagination .prev::before {
+  content: "Anterior";
+}
+html[lang="pt_br"] nav.pagination .next::before {
+  content: "Próximo";
+}
+
+html[lang="zh_cn"] nav.pagination .prev::before {
+  content: "上一页";
+}
+html[lang="zh_cn"] nav.pagination .next::before {
+  content: "下一页";
 }
 
 nav.pagination a {

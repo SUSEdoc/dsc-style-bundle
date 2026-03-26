@@ -5,16 +5,18 @@
   {{/with}} --}}
 {{> breadcrumbs}}
 {{> page-versions}}
+  {{#if (eq (langFromUrl page.url 'lang' this) 'en')}}
   {{#if (and page.fileUri (not env.CI))}}
   <div class="edit-this-page"><a href="{{page.fileUri}}"><strong>Edit</strong></a></div>
   {{else if (and page.editUrl (or env.FORCE_SHOW_EDIT_PAGE_LINK (not page.origin.private)))}}
   <div class="edit-this-page"><a href="{{page.editUrl}}"><strong>Edit</strong></a></div>
   {{/if}}
+  {{/if}}
       {{#if env.SITE_SEARCH_PROVIDER}}
       <div class="navbar-item search hide-for-print">
         <div id="search-field" class="field">
           <label class="visual-search-label-bc" for="search-input">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-          <input label="Search" aria-label="Search" id="search-input" type="text" placeholder="Search the docs" {{#if page.home}} autofocus{{/if}}>
+          <input label="Search" aria-label="Search" id="search-input" type="text" placeholder="{{{searchPlaceholderForLang (langFromUrl page.url 'lang' this)}}}" {{#if page.home}} autofocus{{/if}}>
           <label class="filter checkbox" style="display: none">
             <input type="checkbox" data-facet-filter="component:{{page.component.name}}" checked> Only this project
           </label>

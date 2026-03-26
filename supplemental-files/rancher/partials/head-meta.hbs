@@ -67,9 +67,9 @@ Pass `langExistsFor four parameters:
 <!-- Link for the Spanish page -->
 <link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'es' this}}" hreflang="es-ES" rel="alternate" />
 {{/if}}
-{{#if (langExistsFor 'pt_br' page.url page.attributes.languages (langFromUrl page.url 'lang' this))}}
+{{#if (langExistsFor 'pt' page.url page.attributes.languages (langFromUrl page.url 'lang' this))}}
 <!-- Link for the Brazilian Portuguese page -->
-<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'pt-br' this}}" hreflang="pt-BR" rel="alternate" />
+<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'pt' this}}" hreflang="pt-BR" rel="alternate" />
 {{/if}}
 
 <!-- JSON-LD for doc metadata -->

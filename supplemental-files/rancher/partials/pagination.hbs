@@ -1,0 +1,17 @@
+{{!-- Here do not cross language boundaries with Prev and Next links --}}
+{{#unless (eq page.attributes.pagination undefined)}}
+{{#if (or page.previous page.next)}}
+<nav class="pagination">
+  {{#with page.previous}}
+  {{#if (eq (langFromUrl @root.page.url 'lang' @root) (langFromUrl ./url 'lang' @root))}}
+  <span class="prev"><a href="{{{relativize ./url}}}">{{{./content}}}</a></span>
+  {{/if}}
+  {{/with}}
+  {{#with page.next}}
+  {{#if (eq (langFromUrl @root.page.url 'lang' @root) (langFromUrl ./url 'lang' @root))}}
+  <span class="next"><a href="{{{relativize ./url}}}">{{{./content}}}</a></span>
+  {{/if}}
+  {{/with}}
+</nav>
+{{/if}}
+{{/unless}}
