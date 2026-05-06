@@ -474,8 +474,9 @@ img.langIcon.korea {
 }
 
 .breadcrumbs li::after {
-  content: "/";
-  padding: 0 0.5rem;
+  content: "|";
+  padding-left: 0.4rem;
+  padding-right: 0.1rem;
   color: #30ba78;
 }
 
@@ -1438,6 +1439,7 @@ nav.pagination a {
   height: 1.25rem;
   width: 1.25rem;
   margin: .625rem;
+  margin-right: 0rem;
 }
 .home-link-dsc.is-current,
 .home-link-dsc:hover {
