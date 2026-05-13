@@ -8,3 +8,25 @@
 
 
 <script src="{{{uiRootPath}}}/js/CNLanguageSwitcher.js"></script>
+
+<script type="module">
+
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+document.querySelectorAll('pre code.language-mermaid').forEach((block) => {
+
+const parent = block.parentElement;
+const div = document.createElement('div');
+div.className = 'mermaid';
+div.textContent = block.textContent;
+parent.replaceWith(div);
+
+});
+
+ mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'loose',
+    theme: 'default'
+ });
+
+</script>
