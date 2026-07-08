@@ -230,6 +230,12 @@ a.navbar-logo {
   flex: auto;
 }
 
+/* Bottom-left version selector: darker + bolder so it isn't faint */
+.nav-panel-explore .context .version {
+  color: #0c322c;
+  font-weight: 500;
+}
+
 /* Left Nav Link styles  */
 .is-current-page>.nav-link,
 .is-current-page>.nav-text {
@@ -1485,6 +1491,11 @@ nav.pagination a {
   .nav {
     margin-top: 60px;
   }
+  @media screen and (max-width: 992px) {
+    #search-input{
+      width: 152px;
+    }
+  }
 }
 
 @media screen and (max-width: 1023px) {
@@ -1666,3 +1677,9 @@ html[lang="pt_BR"] .QSI__EmbeddedFeedbackContainer_QuestionText::before {
   content: "Isso foi útil?" !important;
 }
 /* End Qualtrics 5star additions */
+
+/* Version selector buttons (top-right and bottom-left) weight */
+button.version-menu-toggle {
+  color: #0c322c !important;
+  font-weight: 500 !important;
+}
