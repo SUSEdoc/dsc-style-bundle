@@ -1485,6 +1485,21 @@ nav.pagination a {
   .nav {
     margin-top: 60px;
   }
+  .toolbar {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    align-items: center;
+    height: fit-content;
+  }
+
+  #search-input{
+    width: 90%;
+  }
+
+  .version-menu {
+    top: 16px;
+  }
 }
 
 @media screen and (max-width: 1023px) {
@@ -1666,3 +1681,13 @@ html[lang="pt_BR"] .QSI__EmbeddedFeedbackContainer_QuestionText::before {
   content: "Isso foi útil?" !important;
 }
 /* End Qualtrics 5star additions */
+
+/* Version selectors: bolder and higher contrast to match default body text color.
+   Both the top toolbar (.page-versions button) and the bottom-left nav explore
+   panel (.nav-panel-explore .context .version) inherit a muted #5d5d5d, which is
+   too low-contrast. */
+.page-versions .version-menu-toggle,
+.nav-panel-explore .context .version {
+  color: #222;
+  font-weight: 600;
+}
