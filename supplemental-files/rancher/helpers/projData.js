@@ -1,7 +1,7 @@
 'use strict'
 
 const dprint = (...args) => {
-  const debug = false;
+  const debug = true;
   if (debug)
     console.log('Inside projData', ...args);
 }
@@ -17,13 +17,23 @@ module.exports = (request, nav, projectData) => {
   const project = projectData.find(obj => obj['url-part'] === project_code);
   if (!project) return null;
 
+  const dsc_base_url = project['dsc-base-url'];
+  if (!dsc_base_url) return null;
+
   switch(request) {
+    case 'dsc-base-url':
+      return dsc_base_url || null;
     case 'title':
       return project.title || null;
-    case 'url':
-      return project.url || null;
     case 'fullTitle':
       return project.fullTitle || project.title || null;
+    case 'url': {
+      if (!dsc_base_url) return null;
+      const url = dsc_base_url + '/' + (project['dsc-base-url2'] || '');
+      return url
+        .replace(/([^:]\/)\/+/g, '$1') // collapse duplicate slashes, keep protocol
+        .replace(/\/+$/, '');          // strip trailing slash(es)
+    }
     default:
       return null;
   }
