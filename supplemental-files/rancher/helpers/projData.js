@@ -27,7 +27,14 @@ module.exports = (request, nav, projectData) => {
       return project.title || null;
     case 'fullTitle':
       return project.fullTitle || project.title || null;
-    case 'url': {
+    case 'full-proj-url': {
+      if (!dsc_base_url) return null;
+      const url = dsc_base_url + '/' + (project['dsc-base-url2'] + '/' + (project['dsc-base-url3']) || '');
+      return url
+        .replace(/([^:]\/)\/+/g, '$1') // collapse duplicate slashes, keep protocol
+        .replace(/\/+$/, '');          // strip trailing slash(es)
+    }
+    case 'url2': {
       if (!dsc_base_url) return null;
       const url = dsc_base_url + '/' + (project['dsc-base-url2'] || '');
       return url

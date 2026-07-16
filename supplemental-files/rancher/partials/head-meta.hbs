@@ -19,10 +19,10 @@
 </script>
 {{!-- A default English link. Always assumed to exist. --}}
 <!-- Default English link -->
-<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'en' this}}" hreflang="x-default" rel="alternate"/>
+<link href="{{projData 'url2' this page.attributes.project-data}}{{hrefLang page.url 'en' this}}" hreflang="x-default" rel="alternate"/>
 {{!-- This is for the currently processed page. The lang can be extracted from the URL. --}}
 <!-- Link for the currently processed page -->
-<link href="https://documentation.suse.com/cloudnative{{page.url}}" hrefLang="{{langFromUrl page.url 'hreflang' this}}" rel="alternate" />
+<link href="{{projData 'url2' this page.attributes.project-data}}{{page.url}}" hrefLang="{{langFromUrl page.url 'hreflang' this}}" rel="alternate" />
 {{!--
 Go through the potentially available languages to see if any alternate language versions exist.
 If so, then include them.
@@ -40,35 +40,35 @@ Pass `langExistsFor four parameters:
 --}}
 {{#if (langExistsFor 'en' page.url page.attributes.languages (langFromUrl page.url 'lang' this))}}
 <!-- Link for the English page -->
-<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'en' this}}" hreflang="en-US" rel="alternate" />
+<link href="{{projData 'url2' this page.attributes.project-data}}{{hrefLang page.url 'en' this}}" hreflang="en-US" rel="alternate" />
 {{/if}}
 {{#if (langExistsFor 'ko' page.url page.attributes.languages (langFromUrl page.url 'lang' this))}}
 <!-- Link for the Korean page -->
-<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'ko' this}}" hreflang="ko-KR" rel="alternate" />
+<link href="{{projData 'url2' this page.attributes.project-data}}{{hrefLang page.url 'ko' this}}" hreflang="ko-KR" rel="alternate" />
 {{/if}}
 {{#if (langExistsFor 'ja' page.url page.attributes.languages (langFromUrl page.url 'lang' this))}}
 <!-- Link for the Japanese page -->
-<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'ja' this}}" hreflang="ja-JP" rel="alternate" />
+<link href="{{projData 'url2' this page.attributes.project-data}}{{hrefLang page.url 'ja' this}}" hreflang="ja-JP" rel="alternate" />
 {{/if}}
 {{#if (langExistsFor 'zh' page.url page.attributes.languages (langFromUrl page.url 'lang' this))}}
 <!-- Link for the Chinese page -->
-<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'zh' this}}" hreflang="zh-CN" rel="alternate" />
+<link href="{{projData 'url2' this page.attributes.project-data}}{{hrefLang page.url 'zh' this}}" hreflang="zh-CN" rel="alternate" />
 {{/if}}
 {{#if (langExistsFor 'de' page.url page.attributes.languages (langFromUrl page.url 'lang' this))}}
 <!-- Link for the German page -->
-<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'de' this}}" hreflang="de-DE" rel="alternate" />
+<link href="{{projData 'url2' this page.attributes.project-data}}{{hrefLang page.url 'de' this}}" hreflang="de-DE" rel="alternate" />
 {{/if}}
 {{#if (langExistsFor 'fr' page.url page.attributes.languages (langFromUrl page.url 'lang' this))}}
 <!-- Link for the French page -->
-<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'fr' this}}" hreflang="fr-FR" rel="alternate" />
+<link href="{{projData 'url2' this page.attributes.project-data}}{{hrefLang page.url 'fr' this}}" hreflang="fr-FR" rel="alternate" />
 {{/if}}
 {{#if (langExistsFor 'es' page.url page.attributes.languages (langFromUrl page.url 'lang' this))}}
 <!-- Link for the Spanish page -->
-<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'es' this}}" hreflang="es-ES" rel="alternate" />
+<link href="{{projData 'url2' this page.attributes.project-data}}{{hrefLang page.url 'es' this}}" hreflang="es-ES" rel="alternate" />
 {{/if}}
 {{#if (langExistsFor 'pt' page.url page.attributes.languages (langFromUrl page.url 'lang' this))}}
 <!-- Link for the Brazilian Portuguese page -->
-<link href="https://documentation.suse.com/cloudnative{{hrefLang page.url 'pt' this}}" hreflang="pt-BR" rel="alternate" />
+<link href="{{projData 'url2' this page.attributes.project-data}}{{hrefLang page.url 'pt' this}}" hreflang="pt-BR" rel="alternate" />
 {{/if}}
 
 <!-- JSON-LD for doc metadata -->
