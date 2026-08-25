@@ -1,0 +1,70 @@
+---
+extends: default
+
+
+page:
+  size: A4
+  margin: 0.5in
+  orientation: portrait
+
+title-page:
+  background-image: image:images/suse-logo.svg[position=top center]
+
+font:
+  catalog:
+    merge: true
+    SUSE:
+      regular: static/SUSE-Regular.ttf
+      bold: static/SUSE-Bold.ttf
+      italic: static/SUSE-Regular.ttf
+      bold_italic: static/SUSE-Bold.ttf
+    SUSEMono:
+      regular: static/SUSEMono-Regular.ttf
+      bold: static/SUSEMono-Bold.ttf
+      italic: static/SUSEMono-Regular.ttf
+      bold_italic: static/SUSEMono-Bold.ttf
+    NOTOSANS-JP:
+      regular: static/NotoSansJP-Regular.ttf
+      bold: static/NotoSansJP-Bold.ttf
+      italic: static/NotoSansJP-Regular.ttf
+      bold_italic: static/NotoSansJP-Bold.ttf
+    NOTOSANS-KR:
+      regular: static/NotoSansKR-Regular.ttf
+      bold: static/NotoSansKR-Bold.ttf
+      italic: static/NotoSansKR-Regular.ttf
+      bold_italic: static/NotoSansKR-Bold.ttf
+    NOTOSANS-TC:
+      regular: static/NotoSansTC-Regular.ttf
+      bold: static/NotoSansTC-Bold.ttf
+      italic: static/NotoSansTC-Regular.ttf
+      bold_italic: static/NotoSansTC-Bold.ttf
+    NOTOSANS-SC:
+      regular: static/NotoSansSC-Regular.ttf
+      bold: static/NotoSansSC-Bold.ttf
+      italic: static/NotoSansSC-Regular.ttf
+      bold_italic: static/NotoSansSC-Bold.ttf
+  fallbacks:
+  - NOTOSANS-JP
+  - NOTOSANS-KR
+  - NOTOSANS-TC
+  - NOTOSANS-SC
+
+base:
+  font-family: SUSE
+  font: regular
+
+heading:
+  font-family: SUSE
+  font: bold
+
+code:
+  font-family: SUSEMono
+  font: regular
+
+pre.highlight:
+  font-family: SUSEMono
+  font: regular
+
+codespan:
+  font-family: SUSEMono
+  font: regular
