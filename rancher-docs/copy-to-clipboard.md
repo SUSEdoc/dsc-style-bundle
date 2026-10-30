@@ -12,6 +12,7 @@ The default UI accepts only the `$ ` prompt. The SUSE style guide uses `> ` for 
 - `extractCommands` finds the commands in a block.
 - `HEREDOC_RX` finds heredocs.
 - `writeToClipboard` calls `extractCommands` for `console` blocks where `hasPrompt` is true.
+- `fixPromptSelection` sets which prompts the mouse cannot select. Refer to [Mouse selection](#mouse-selection).
 
 ## Rules
 
@@ -27,6 +28,16 @@ The default UI accepts only the `$ ` prompt. The SUSE style guide uses `> ` for 
 | No prompt | The block is copied without changes. |
 | Literal block | A literal block that starts with `$ ` becomes a console block. Other literal blocks get no copy button. |
 
+## Mouse selection
+
+highlight.js marks each `$`, `#` or `>` at the start of a console line as a prompt (`hljs-meta`). The bundle CSS makes `hljs-meta` unselectable. Without a fix, a mouse selection removes the `#` from a comment, and the comment becomes a command.
+
+`fixPromptSelection` runs on the page `load` event, after highlight.js. It keeps `hljs-meta` only on the lines where the copy button removes a prompt. `extractCommands` gives these lines.
+
+- Prompts that the copy button removes: the mouse cannot select them.
+- Comments, output, and text in heredoc bodies without prompts: the mouse selects all characters.
+- Blocks where `hasPrompt` is false: the mouse selects all characters.
+
 ## Limitations and writing rules
 
 The code cannot find the difference between these items and commands. Writers must prevent them.
@@ -39,8 +50,8 @@ The code cannot find the difference between these items and commands. Writers mu
 
 ## Test
 
-1. Run `node --test tests/*.test.cjs`. [`tests/copy-to-clipboard.test.cjs`](../tests/copy-to-clipboard.test.cjs) tests `hasPrompt` and `extractCommands`.
-2. For a browser test, build a rancher docs site with this repository as `supplemental_files`. Click the copy buttons on pages with console blocks.
+1. Run `node --test tests/*.test.cjs`. [`tests/copy-to-clipboard.test.cjs`](../tests/copy-to-clipboard.test.cjs) tests `hasPrompt`, `extractCommands`, and the prompt lines for mouse selection.
+2. For a browser test, build a rancher docs site with this repository as `supplemental_files`. Click the copy buttons on pages with console blocks. Select the blocks with the mouse and copy.
 
 ## When `ui-bundle.zip` changes
 

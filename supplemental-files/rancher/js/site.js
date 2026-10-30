@@ -6,8 +6,9 @@
 
 /* Rancher patch: replaces the default UI copy-to-clipboard module so that
    console blocks can use "$ ", "# " (root) or "> " prompts, "> " lines can
-   continue a command, and heredoc bodies are copied. The rest of this file is
-   the unmodified site.js from default-ui/ui-bundle.zip. */
+   continue a command, and heredoc bodies are copied. Only real prompts are
+   unselectable with the mouse. The rest of this file is the unmodified site.js
+   from default-ui/ui-bundle.zip. */
 !(function () {
   'use strict'
 
@@ -25,7 +26,8 @@
   // Heredoc bodies are copied up to the delimiter line in any block. The body
   // lines can be written with or without a "> " prompt, as decided by the
   // first body line.
-  function extractCommands (text) {
+  // If promptLines is an array, the index of each line with a prompt is added.
+  function extractCommands (text, promptLines) {
     var prompt = text.slice(0, 2)
     var cmds = []
     var cmd
@@ -40,10 +42,17 @@
       bodyPrompt = undefined
     }
 
-    text.split('\n').forEach(function (line) {
+    function markPrompt (i) {
+      if (promptLines) promptLines.push(i)
+    }
+
+    text.split('\n').forEach(function (line, i) {
       if (heredocs.length) {
         if (bodyPrompt == null) bodyPrompt = /^>( |$)/.test(line)
-        if (bodyPrompt) line = line.replace(/^> ?/, '')
+        if (bodyPrompt && /^>( |$)/.test(line)) {
+          markPrompt(i)
+          line = line.replace(/^> ?/, '')
+        }
         cmd += '\n' + line
         multiline = true
         if ((heredocs[0].tabs ? line.replace(/^\t+/, '') : line) === heredocs[0].word) {
@@ -52,15 +61,18 @@
         }
       } else if (line.startsWith(prompt)) {
         if (cmd != null) cmds.push(cmd)
+        markPrompt(i)
         cmd = line.slice(2)
         addHeredocs(cmd)
       } else if (cmd != null && /\\$/.test(cmd)) {
+        if (/^> /.test(line)) markPrompt(i)
         var rest = line.replace(/^> /, '')
         var sep = / \\$/.test(cmd) || rest.charAt(0) === ' ' ? ' ' : ''
         cmd = cmd.replace(/ *\\$/, '') + sep + rest.replace(/^ +/, '')
         addHeredocs(rest)
       } else if (cmd != null && prompt !== '> ' && /^>( |$)/.test(line)) {
         // a blank continuation line is just ">" once trailing spaces are gone
+        markPrompt(i)
         cmd += '\n' + line.slice(2)
         multiline = true
         addHeredocs(line)
@@ -131,6 +143,29 @@
     pre.appendChild(toolbox)
     if (copy) copy.addEventListener('click', writeToClipboard.bind(copy, code))
   })
+
+  // highlight.js marks each "$", "#" or ">" at the start of a line in a console
+  // block as a prompt (hljs-meta), and the bundle CSS makes it unselectable.
+  // Keep this only for the prompts that the copy button removes. Then a comment
+  // such as "# rm ..." keeps its "#" when a user selects it with the mouse.
+  // highlight.js loads async, so do this on the load event.
+  function fixPromptSelection () {
+    ;[].slice.call(document.querySelectorAll('.doc pre.highlight code.language-console')).forEach(function (code) {
+      var text = code.innerText.replace(TRAILING_SPACE_RX, '')
+      var promptLines = []
+      if (hasPrompt(text)) extractCommands(text, promptLines)
+      ;[].slice.call(code.querySelectorAll('.hljs-meta')).forEach(function (meta) {
+        var range = document.createRange()
+        range.setStart(code, 0)
+        range.setEndBefore(meta)
+        // the meta text can start with the newline of a blank line before it
+        var line = range.toString().split('\n').length - 1 + meta.textContent.match(/^\n*/)[0].length
+        if (promptLines.indexOf(line) < 0) meta.classList.remove('hljs-meta')
+      })
+    })
+  }
+
+  window.addEventListener('load', fixPromptSelection)
 
   function writeToClipboard (code) {
     var text = code.innerText.replace(TRAILING_SPACE_RX, '')

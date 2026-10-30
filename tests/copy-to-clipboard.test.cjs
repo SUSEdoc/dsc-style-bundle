@@ -64,3 +64,28 @@ const cases = {
 for (const [name, [input, expected]] of Object.entries(cases)) {
   test(name, () => assert.equal(copy(input), expected))
 }
+
+// Lines where the prompt is unselectable with the mouse (fixPromptSelection).
+const promptLines = (text) => {
+  text = text.replace(/ +$/gm, '')
+  const lines = []
+  if (hasPrompt(text)) extractCommands(text, lines)
+  return lines
+}
+
+const promptCases = {
+  'commands, output has no prompt': ['$ ls\nfoo\n$ pwd', [0, 2]],
+  '"# " comment in "$ " block is not a prompt': ['$ ls\n# rm -rf /tmp/x\n$ pwd', [0, 2]],
+  'script with "# " comments has no prompts': ['# Clone it\ngit clone x\n\n# Build\nmake', []],
+  'root block': ['# zypper ref\n\n# zypper in x', [0, 2]],
+  'backslash continuation with "> " prompt': ['$ helm install \\\n> --set a=b', [0, 1]],
+  'backslash continuation without prompt': ['> helm install \\\n  --set a=b', [0]],
+  'heredoc body with "> " prompts, blank body line': ['> cat <<EOF\n> a\n> \n> EOF\nout', [0, 1, 2, 3]],
+  'heredoc body without prompts': ['> cat <<EOF\na\n> quoted\nEOF', [0]],
+  'multi-line string in "$ " block': ['$ echo "a\n>\n> b"', [0, 1, 2]],
+  'no prompt': ['kubectl get ns\nNAME', []],
+}
+
+for (const [name, [input, expected]] of Object.entries(promptCases)) {
+  test('prompt lines: ' + name, () => assert.deepEqual(promptLines(input), expected))
+}
