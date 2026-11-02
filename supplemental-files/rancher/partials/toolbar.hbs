@@ -5,6 +5,11 @@
   {{/with}} --}}
 {{> breadcrumbs}}
 {{> page-versions}}
+  {{!-- The PDF of the release, opened at this page. pdf/antora-pdf.js sets
+        these attributes in mode deliverable. --}}
+  {{#with page.attributes.pdf-url}}
+  <div class="pdf-link hide-for-print"><a href="{{this}}{{#with @root.page.attributes.pdf-anchor}}#nameddest={{this}}{{/with}}" title="{{@root.page.attributes.pdf-title}}"><strong>PDF</strong></a></div>
+  {{/with}}
   {{#if (eq (langFromUrl page.url 'lang' this) 'en')}}
   {{#if (and page.fileUri (not env.CI))}}
   <div class="edit-this-page"><a href="{{page.fileUri}}"><strong>Edit</strong></a></div>
