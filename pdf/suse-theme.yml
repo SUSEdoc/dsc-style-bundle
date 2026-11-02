@@ -1,0 +1,61 @@
+# SUSE PDF theme for asciidoctor-pdf. antora-pdf.js uses it.
+# pdf.mk downloads the fonts (SIL Open Font License) to the tools folder of the
+# product repository. The logo is in images/. antora-pdf.js sets the
+# printed-at attribute when it builds.
+extends: default
+font:
+  catalog:
+    merge: true
+    SUSE:
+      normal: SUSE-Regular.ttf
+      bold: SUSE-Bold.ttf
+      italic: SUSE-RegularItalic.ttf
+      bold_italic: SUSE-BoldItalic.ttf
+    SUSE Mono:
+      normal: SUSEMono-Regular.ttf
+      bold: SUSEMono-Bold.ttf
+      italic: SUSEMono-RegularItalic.ttf
+      bold_italic: SUSEMono-BoldItalic.ttf
+page:
+  size: A4
+base:
+  font-family: SUSE
+heading:
+  font-family: SUSE
+code:
+  font-family: SUSE Mono
+codespan:
+  font-family: SUSE Mono
+kbd:
+  font-family: SUSE Mono
+# asciidoctor-pdf cannot split a table row across pages. With 9 pt, the long
+# cells of the generated CRD references fit on one page.
+table:
+  font-size: 9
+title-page:
+  align: left
+  logo:
+    image: image:images/suse-logo.svg[pdfwidth=150mm]
+    top: 6%
+    align: left
+  title:
+    top: 40%
+    font-color: '#0C322C'
+    font-size: 30
+  subtitle:
+    font-color: '#0C322C'
+  revision:
+    font-color: '#555555'
+footer:
+  font-size: 8
+  font-color: '#555555'
+  recto:
+    left:
+      content: 'Printed {printed-at}'
+    right:
+      content: '{page-number}'
+  verso:
+    left:
+      content: 'Printed {printed-at}'
+    right:
+      content: '{page-number}'

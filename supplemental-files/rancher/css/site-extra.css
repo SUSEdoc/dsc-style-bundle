@@ -202,6 +202,21 @@ a.navbar-logo {
   color: #0c322c;
 }
 
+/* The PDF link in the toolbar (partials/toolbar.hbs). It is also shown on
+   small screens. Without the version menu before it, move it to the right. */
+.toolbar .pdf-link {
+  margin-left: auto;
+  padding-right: 0.5rem;
+}
+
+.toolbar .page-versions ~ .pdf-link {
+  margin-left: 0;
+}
+
+.toolbar .pdf-link a {
+  color: #0c322c;
+}
+
 .toolbar {
   background-color: #efefef;
   /* Shared Header - start */

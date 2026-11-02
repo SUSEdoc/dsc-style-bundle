@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "Node.js tools for the PDF build. pdf.mk installs them in the tools folder of the product repository. Keep mermaid-cli on the mermaid major version that partials/header-scripts.hbs loads (10).",
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "10.9.1"
+  }
+}

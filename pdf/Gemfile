@@ -1,0 +1,8 @@
+# Ruby gems for the PDF build. pdf.mk installs them in the tools folder of the
+# product repository. Ruby 4 no longer includes logger and bigdecimal.
+source 'https://rubygems.org'
+gem 'asciidoctor-pdf', '~> 2.3'
+gem 'asciidoctor-diagram', '~> 3.2'
+gem 'rouge', '~> 5.1'
+gem 'logger'
+gem 'bigdecimal'

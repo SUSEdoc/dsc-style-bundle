@@ -19,6 +19,7 @@ This repository contains the Antora UI for SUSE product documentation. Antora pl
   | `js/` | Page scripts. |
   | `img/`, `fonts/` | Images and fonts. |
 
+- `pdf/`: the optional PDF build. Web sites do not publish it. Refer to [pdf/README.md](pdf/README.md).
 - `tests/`: Node.js tests.
 - `rancher-docs/`: notes on changes to `supplemental-files/rancher`.
 - `tmp/`: scratch files. They are not part of the UI.
