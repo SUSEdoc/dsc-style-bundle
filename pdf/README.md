@@ -115,6 +115,7 @@ You must have Ruby with Bundler, Node.js, `curl`, `unzip`, and `sha256sum`. merm
 - In a mixed-language PDF, a link in page text to a page of the fallback language stays text, if that page is not in the PDF.
 - An xref to a page that is not in the PDF nav stays text, if `site_url` is not set. With `site_url`, it is a web link to that site. `pdf.mk` gives `site_url` only to the PDF run, with `--url`, so the site build does not change.
 - asciidoctor-pdf cuts a table cell that is longer than one page. The theme uses a 9 pt table font, so that the long cells of the CRD references fit.
+- Only xref targets in the landing pages can use attributes.
 
 ## Follow-ups
 
@@ -122,4 +123,10 @@ You must have Ruby with Bundler, Node.js, `curl`, `unzip`, and `sha256sum`. merm
 - The generated CRD references show `Optional: \{}` in the Validation column. Do a check of the escape in the template.
 - SUSE and SUSE Mono do not have some symbols in the content: box-drawing characters in directory trees, check marks, circled numbers, and emoji. Add a fallback font for symbols, for example DejaVu Sans Mono for code.
 - The tooltip of the toolbar link is in English for all languages.
-- Only xref targets in the landing pages can use attributes.
+- Build time and size. suse-security, seven languages: the PDF step adds about 12 minutes to CI (the job takes about 14 minutes, not about 2). The GitHub Pages artifact grows from 130 MB to 200 MB. The PDFs are 45 MB. Possible improvements:
+  - Build the languages at the same time, for example with a CI matrix. GitHub runners have 4 cores.
+  - Use one diagram cache for all languages (`diagram-cachedir`). The diagram labels are the same in each language.
+  - Cache `tmp/pdf-tools/` in CI.
+  - Try Ruby YJIT (`RUBY_YJIT_ENABLE=1`).
+  - Do a check of the `latest` symlink. The Pages upload follows symlinks, so it possibly puts the PDFs in the artifact two times.
+  - Make the mermaid PNG files at 2 times the size, not 3 times.
