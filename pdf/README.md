@@ -58,6 +58,7 @@ release_config: suse-security-release-config.yml   # the release config of relea
 releases: latest                # latest (newest release that is not a prerelease), all, or a list
 languages: [en, ja, zh]         # one PDF for each language
 fallback_language: en           # for components without a nav in the language
+site_url: https://example.com   # optional; the site for web links in the PDFs
 print:
   show_urls: true               # print the URL after each web link
   printed_date: true            # "Printed <date> <time>" on the title page and in the footer
@@ -112,7 +113,7 @@ You must have Ruby with Bundler, Node.js, `curl`, `unzip`, and `sha256sum`. merm
 - The build supports only products with a release config.
 - Only `ja` and `zh` have CJK fonts. Other CJK languages, for example `ko`, need a font in `pdf.mk` and `antora-pdf.js`.
 - In a mixed-language PDF, a link in page text to a page of the fallback language stays text, if that page is not in the PDF.
-- An xref to a page that is not in the PDF nav stays text.
+- An xref to a page that is not in the PDF nav stays text, if `site_url` is not set. With `site_url`, it is a web link to that site. `pdf.mk` gives `site_url` only to the PDF run, with `--url`, so the site build does not change.
 - asciidoctor-pdf cuts a table cell that is longer than one page. The theme uses a 9 pt table font, so that the long cells of the CRD references fit.
 
 ## Follow-ups

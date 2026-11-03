@@ -22,6 +22,10 @@ PDF_PLAYBOOK ?= local-product-playbook.yml
 PDF_SITE_DIR ?= build/site
 PDF_DIR := $(abspath $(DSC)/pdf)
 PDF_MODE := $(shell sed -n 's/^mode:[[:space:]]*\([a-z]*\).*/\1/p' $(PDF_OPTIONS) 2>/dev/null)
+# The site URL for the PDF run: site_url in $(PDF_OPTIONS). With it, a link to
+# a page that is not in the PDF becomes a web link. The site build does not
+# use it.
+PDF_SITE_URL := $(shell sed -n 's/^site_url:[[:space:]]*\([^[:space:]#]*\).*/\1/p' $(PDF_OPTIONS) 2>/dev/null)
 # The folder of the PDFs: output_dir in $(PDF_OPTIONS), or build/pdf.
 PDF_OUT := $(or $(shell sed -n 's/^output_dir:[[:space:]]*\([^[:space:]#]*\).*/\1/p' $(PDF_OPTIONS) 2>/dev/null),build/pdf)
 PDF_EXTENSION := --extension $(PDF_DIR)/antora-pdf.js
@@ -99,7 +103,8 @@ else
 	$(MAKE) pdf-tools
 	mkdir -p tmp
 	ANTORA_PDF_RUN=pdf ANTORA_PDF_SITE_DIR=$(PDF_SITE_DIR) npx antora --stacktrace --log-format=pretty \
-		--log-level=info $(PDF_EXTENSION) --to-dir $(PDF_TOOLS)/site $(PDF_PLAYBOOK) 2>&1 | tee tmp/pdf-build.log
+		--log-level=info $(PDF_EXTENSION) $(if $(PDF_SITE_URL),--url $(PDF_SITE_URL)) --to-dir $(PDF_TOOLS)/site \
+		$(PDF_PLAYBOOK) 2>&1 | tee tmp/pdf-build.log
 	@$(MAKE) --no-print-directory pdf-summary
 endif
 
