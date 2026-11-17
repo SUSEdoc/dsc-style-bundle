@@ -8,8 +8,9 @@
 //
 // - The PDF run (ANTORA_PDF_RUN=pdf, make pdf or make local-pdf). For each
 //   selected release and language, it makes one PDF: the landing pages of the
-//   release, then each component version that the release pins. It writes the PDFs and pdf-manifest.json to build/pdf/. The site of this run
-//   is not used.
+//   release, then each component version that the release pins. It writes the
+//   PDFs and pdf-manifest.json to build/pdf/, and then stops. It does not
+//   publish a site.
 // - The site run, in mode deliverable only. It reads pdf-manifest.json, adds
 //   the PDFs to the site, and gives each page in a PDF the page-pdf-url,
 //   page-pdf-anchor, and page-pdf-title attributes for the toolbar link. It
@@ -161,7 +162,10 @@ module.exports.register = function ({ config = {}, playbook }) {
 
   // Step 4: write the PDFs and the manifest to build/pdf/. If the site of an
   // earlier site run is there (ANTORA_PDF_SITE_DIR), copy the PDFs into it too.
-  this.once('beforePublish', async () => {
+  // Then stop the run: it needs no HTML pages, search index or site. This
+  // listener must be the last navigationBuilt listener, because stop() ends
+  // the event.
+  this.once('navigationBuilt', async () => {
     fs.rmSync(outDir, { recursive: true, force: true })
     fs.mkdirSync(outDir, { recursive: true })
     const siteDir = process.env.ANTORA_PDF_SITE_DIR && path.resolve(repoDir, process.env.ANTORA_PDF_SITE_DIR)
@@ -180,6 +184,8 @@ module.exports.register = function ({ config = {}, playbook }) {
       logger.info(`PDF: ${path.join(outDir, file)} (${Object.keys(pages).length} pages)`)
     }
     fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 1) + '\n')
+    logger.info('PDF run: the PDFs are written; the run stops before the site is made')
+    this.stop()
   })
 
   function assemblerConfig (lang) {
