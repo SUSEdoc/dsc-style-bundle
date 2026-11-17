@@ -44,7 +44,7 @@ In CI, use mode `deliverable`, and run `make pdf PDF_PLAYBOOK=remote-product-pla
 ## Make targets
 
 - `make pdf-tools`: installs the tools in `tmp/pdf-tools/`. It installs again only when a lock file or the font version changes.
-- `make pdf`: the PDF run with `PDF_PLAYBOOK` (default `local-product-playbook.yml`). The site of this run goes to `tmp/pdf-tools/site/` and is not used.
+- `make pdf`: the PDF run with `PDF_PLAYBOOK` (default `local-product-playbook.yml`). The run stops after the PDFs are written. It does not compose the HTML pages, build the search index or publish the site.
 - `make local-pdf`: `make pdf` with `local-product-playbook.yml`.
 - `make pdf-summary`: lists the PDFs in `build/pdf/` (or `output_dir`), with the number of pages and the size. `make pdf` runs it at the end.
 
@@ -77,7 +77,7 @@ The PDF run uses `@antora/pdf-extension` from the product repository:
 1. `contentAggregated`: `releaseNav` makes a nav file for each release and language in the landing copy of the release. The site menu does not show it.
 2. `contentClassified`: replaces attributes in the xref targets of the landing pages, for example `{landing-admc-ref}`. The assembler resolves xrefs before it replaces attributes.
 3. `navigationBuilt`: one assembler run for each language. `takeExports` keeps each PDF, its URL `/<prefix>/<release>/<lang>/<prefix>-<release>-<lang>.pdf`, and the named destination of each page.
-4. `beforePublish`: writes the PDFs and `pdf-manifest.json` to `build/pdf/`.
+4. `navigationBuilt`, after the assembler runs: writes the PDFs and `pdf-manifest.json` to `build/pdf/`. Then `this.stop()` ends the run, so Antora does not compose the pages, and the other extensions of the playbook (for example the search index) do not run after this step.
 
 The site run (`registerLinks`) sets the page attributes `page-pdf-url`, `page-pdf-anchor`, and `page-pdf-title` from the manifest, and adds the PDFs to the site.
 

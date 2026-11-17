@@ -94,7 +94,7 @@ $(PDF_TOOLS)/fonts/NotoSans%-Regular.ttf: | $(PDF_TOOLS)/fonts/.$(PDF_FONT_VERSI
 	$(PDF_TOOLS)/venv/bin/fonttools varLib.instancer -q --update-name-table $(@D)/NotoSans$*-var.ttf wght=400 -o $@
 	rm $(@D)/NotoSans$*-var.ttf
 
-# The PDF run. Its site goes to $(PDF_TOOLS)/site and is not used. If
+# The PDF run. It stops after the PDFs are written, so it publishes no site. If
 # $(PDF_SITE_DIR) exists, the PDFs are copied into it too.
 pdf:
 ifeq ($(filter local deliverable,$(PDF_MODE)),)
