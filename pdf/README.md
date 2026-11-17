@@ -116,6 +116,7 @@ You must have Ruby with Bundler, Node.js, `curl`, `unzip`, and `sha256sum`. merm
 - An xref to a page that is not in the PDF nav stays text, if `site_url` is not set. With `site_url`, it is a web link to that site. `pdf.mk` gives `site_url` only to the PDF run, with `--url`, so the site build does not change.
 - asciidoctor-pdf cuts a table cell that is longer than one page. The theme uses a 9 pt table font, so that the long cells of the CRD references fit.
 - Only xref targets in the landing pages can use attributes.
+- In a nav file, the PDF build expands only `include::partial$<file>[]` and includes with `tag=` or `tags=`. An include with other attributes, or with tag wildcards (`*`) or negations (`!`), is not expanded, and its entries are not in the PDF.
 
 ## Follow-ups
 

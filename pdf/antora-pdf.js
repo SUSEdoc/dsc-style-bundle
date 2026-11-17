@@ -321,13 +321,8 @@ function planReleases (contentAggregate, options, yaml) {
 // too. Attributes in the include target, such as {build-type}, come from the
 // playbook.
 function releaseNav (contentAggregate, plan, release, landingBucket, lang, fallback, attributes) {
-  const expand = (b, mod, text, depth = 0) =>
-    text.replace(/^include::partial\$([^[]+)\[\]$/gm, (line, target) => {
-      const rel = target.replace(/\{([\w-]+)\}/g, (m, n) => (n in attributes ? String(attributes[n]).replace(/@$/, '') : m))
-      const f = b.files.find((it) => it.path === `modules/${mod}/partials/${rel}`)
-      if (!f || depth > 3) return line
-      return expand(b, mod, f.contents.toString().replace(/\n$/, ''), depth + 1)
-    })
+  const expand = (b, mod, text) =>
+    expandNavIncludes(text, attributes, (rel) => b.files.find((it) => it.path === `modules/${mod}/partials/${rel}`)?.contents.toString())
   // Attributes in xref targets: {release-<component>-version}, and attributes
   // that the landing files define from them, such as {landing-admc-ref}.
   const refValues = {}
@@ -434,8 +429,58 @@ function findChromium () {
   }
 }
 
+// Puts the partials that a nav includes in line. It expands
+// include::partial$<target>[] and include::partial$<target>[tag=a] or
+// [tags=a;b], like Asciidoctor: with tags, only the lines between the tag
+// markers, without the marker lines. An include with other attributes, or with
+// tag wildcards or negations, stays as it is. readPartial(rel) returns the
+// contents of partials/<rel>, or undefined.
+function expandNavIncludes (text, attributes, readPartial, depth = 0) {
+  return text.replace(/^include::partial\$([^[]+)\[([^\]]*)\]$/gm, (line, target, attrlist) => {
+    const tags = includeTags(attrlist)
+    if (tags === undefined || depth > 3) return line
+    const rel = target.replace(/\{([\w-]+)\}/g, (m, n) => (n in attributes ? String(attributes[n]).replace(/@$/, '') : m))
+    const contents = readPartial(rel)
+    if (contents === undefined) return line
+    let body = contents.replace(/\n$/, '')
+    if (tags) body = taggedLines(body, tags)
+    return expandNavIncludes(body, attributes, readPartial, depth + 1)
+  })
+}
+
+// The tag names of an include attribute list: null for no attributes (all
+// lines), undefined for attributes that expandNavIncludes does not support.
+function includeTags (attrlist) {
+  const s = attrlist.trim()
+  if (!s) return null
+  const m = s.match(/^tags?=("?)([^"]*)\1$/)
+  if (!m) return undefined
+  const tags = m[2].split(/[;,]/).map((it) => it.trim()).filter(Boolean)
+  if (!tags.length || tags.some((it) => /[*!]/.test(it))) return undefined
+  return tags
+}
+
+// The lines inside one of the tags, without the tag marker lines.
+function taggedLines (text, tags) {
+  const open = []
+  const lines = []
+  for (const line of text.split('\n')) {
+    const m = line.match(/\b(tag|end)::(\S+?)\[\](?=$|[ \r])/)
+    if (m) {
+      if (m[1] === 'tag') open.push(m[2])
+      else if (open.includes(m[2])) open.splice(open.lastIndexOf(m[2]), 1)
+      continue
+    }
+    if (open.some((it) => tags.includes(it))) lines.push(line)
+  }
+  return lines.join('\n')
+}
+
 function formatNow (now = new Date()) {
   const pad = (n) => String(n).padStart(2, '0')
   const zone = now.toLocaleTimeString('en-GB', { timeZoneName: 'short' }).split(' ').pop()
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())} ${zone}`
 }
+
+// For tests.
+module.exports.expandNavIncludes = expandNavIncludes
