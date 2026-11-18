@@ -16,8 +16,8 @@
 //   page-pdf-anchor, and page-pdf-title attributes for the toolbar link. It
 //   needs no PDF tools.
 //
-// The release structure comes from the release config of the
-// release-url-layout extension in product-docs-common.
+// The releases come from the product file
+// shared/modules/ROOT/partials/releases/<product>.yml (see planReleases).
 
 const fs = require('node:fs')
 const path = require('node:path')
@@ -132,6 +132,9 @@ module.exports.register = function ({ config = {}, playbook }) {
           if (m[2] in values) values[m[1]] = values[m[2]] + '@'
         }
       }
+      // A release with no pinned components has no values. An empty pattern
+      // would match "{}".
+      if (!Object.keys(values).length) continue
       const rx = new RegExp(`\\{(${Object.keys(values).join('|')})\\}`, 'g')
       for (const f of files) {
         if (!f.src.relative?.endsWith('.adoc')) continue
@@ -285,18 +288,25 @@ function pageKey (page) {
   return `${version}@${component}:${mod}:${relative}`
 }
 
-// The releases to build, from the release config of release-url-layout.
+// The releases to build. The product file is
+// shared/modules/ROOT/partials/releases/<product>.yml, with <product> from
+// pdf-options.yml. It lists the releases, or says "releases: versions": then
+// each version of the product component is a release, with no other
+// components.
 function planReleases (contentAggregate, options, yaml) {
-  const name = options.release_config
-  if (!name) throw new Error('antora-pdf: pdf-options.yml has no release_config')
-  let configFile
-  for (const bucket of contentAggregate) {
-    configFile = bucket.files.find((f) => path.posix.basename(f.path) === name)
-    if (configFile) break
-  }
-  if (!configFile) throw new Error(`antora-pdf: release config ${name} is not in the content`)
-  const cfg = yaml.load(configFile.contents.toString())
-  const all = cfg.releases || []
+  const product = options.product
+  if (!product) throw new Error('antora-pdf: pdf-options.yml has no product')
+  const relPath = `modules/ROOT/partials/releases/${product}.yml`
+  const configFile = contentAggregate
+    .filter((b) => b.name === 'shared')
+    .flatMap((b) => b.files)
+    .find((f) => f.path === relPath)
+  if (!configFile) throw new Error(`antora-pdf: no ${relPath} in the shared component`)
+  const cfg = yaml.load(configFile.contents.toString()) || {}
+  const landing = cfg.product?.component
+  if (!landing) throw new Error(`antora-pdf: ${relPath} has no product.component`)
+  const all = cfg.releases === 'versions' ? versionReleases(contentAggregate, landing) : cfg.releases
+  if (!Array.isArray(all)) throw new Error(`antora-pdf: releases in ${relPath} must be a list or "versions"`)
   const wanted = options.releases ?? 'latest'
   const selected =
     wanted === 'all'
@@ -304,16 +314,42 @@ function planReleases (contentAggregate, options, yaml) {
       : wanted === 'latest'
         ? [all.find((r) => !r.prerelease)].filter(Boolean)
         : all.filter((r) => [].concat(wanted).map(String).includes(String(r.version)))
-  const landing = cfg.product.component
   const releases = selected.map((release) => {
     const bucket =
       contentAggregate.find((b) => b.name === landing && b.version === release.version) ||
       contentAggregate.find((b) => b.name === landing && b.version === cfg.product.landing_version)
     if (!bucket) throw new Error(`antora-pdf: no landing component ${landing} for release ${release.version}`)
-    return { release, bucket }
+    return { release: { ...release, components: release.components || {} }, bucket }
   })
-  const title = releases[0]?.bucket.title || cfg.product.url_prefix
-  return { prefix: cfg.product.url_prefix, landing, title, releases }
+  const prefix = cfg.product.url_prefix || product
+  const title = releases[0]?.bucket.title || prefix
+  return { prefix, landing, title, releases }
+}
+
+// "releases: versions": one release for each version of the component, newest
+// first. A version with prerelease in its antora.yml is a prerelease.
+function versionReleases (contentAggregate, name) {
+  const versions = new Map()
+  for (const b of contentAggregate) {
+    if (b.name === name) versions.set(String(b.version), Boolean(b.prerelease))
+  }
+  return [...versions]
+    .map(([version, prerelease]) => ({ version, prerelease, components: {} }))
+    .sort((a, b) => compareVersions(b.version, a.version))
+}
+
+// Compares versions such as v2.15, 2.9 and 1.0.1 by their numbers. Versions
+// without numbers, such as latest, come after the others.
+function compareVersions (a, b) {
+  const parts = (v) => (String(v).match(/\d+/g) || []).map(Number)
+  const pa = parts(a)
+  const pb = parts(b)
+  if (!pa.length || !pb.length) return pb.length - pa.length || String(a).localeCompare(String(b))
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0)
+    if (d) return d
+  }
+  return String(a).localeCompare(String(b))
 }
 
 // The PDF nav of one release and language: the landing nav, then the nav of
@@ -490,3 +526,5 @@ function formatNow (now = new Date()) {
 
 // For tests.
 module.exports.expandNavIncludes = expandNavIncludes
+module.exports.planReleases = planReleases
+module.exports.compareVersions = compareVersions

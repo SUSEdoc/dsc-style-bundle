@@ -19,6 +19,8 @@ DSC ?= dsc-style-bundle
 PDF_OPTIONS ?= pdf-options.yml
 PDF_TOOLS ?= tmp/pdf-tools
 PDF_PLAYBOOK ?= local-product-playbook.yml
+# The playbook of make local-pdf.
+PDF_LOCAL_PLAYBOOK ?= local-product-playbook.yml
 PDF_SITE_DIR ?= build/site
 PDF_DIR := $(abspath $(DSC)/pdf)
 PDF_MODE := $(shell sed -n 's/^mode:[[:space:]]*\([a-z]*\).*/\1/p' $(PDF_OPTIONS) 2>/dev/null)
@@ -119,4 +121,4 @@ pdf-summary:
 	done; [ -n "$$found" ] || echo "  none"
 
 local-pdf:
-	$(MAKE) pdf PDF_PLAYBOOK=local-product-playbook.yml
+	$(MAKE) pdf PDF_PLAYBOOK=$(PDF_LOCAL_PLAYBOOK)

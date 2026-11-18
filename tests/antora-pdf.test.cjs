@@ -59,3 +59,44 @@ test('an include that is not supported stays as it is', () => {
     assert.equal(expand(line), line)
   }
 })
+
+// planReleases reads shared/modules/ROOT/partials/releases/<product>.yml.
+const { planReleases, compareVersions } = require('../pdf/antora-pdf.js')
+const yaml = { load: JSON.parse }
+const bucket = (name, version, extra = {}, files = []) => ({ name, version, title: name, files, ...extra })
+const releaseFile = (product, data) => ({ path: `modules/ROOT/partials/releases/${product}.yml`, contents: Buffer.from(JSON.stringify(data)) })
+
+test('compareVersions orders versions by their numbers', () => {
+  const sorted = ['v2.9', 'v2.15', 'latest', 'v2.11', '1.0.1', '1.0'].sort(compareVersions)
+  assert.deepEqual(sorted, ['1.0', '1.0.1', 'v2.9', 'v2.11', 'v2.15', 'latest'])
+})
+
+test('releases: versions makes a release of each version, and latest skips a prerelease', () => {
+  const aggregate = [
+    bucket('shared', 'latest', {}, [releaseFile('rancher-manager', { product: { component: 'rancher-manager' }, releases: 'versions' })]),
+    bucket('rancher-manager', 'v2.14'),
+    bucket('rancher-manager', 'v2.16', { prerelease: '(Unreleased)' }),
+    bucket('rancher-manager', 'v2.15'),
+  ]
+  const plan = planReleases(aggregate, { product: 'rancher-manager' }, yaml)
+  assert.equal(plan.prefix, 'rancher-manager')
+  assert.equal(plan.landing, 'rancher-manager')
+  assert.deepEqual(plan.releases.map(({ release }) => release.version), ['v2.15'])
+  assert.deepEqual(plan.releases[0].release.components, {})
+  assert.equal(plan.releases[0].bucket.version, 'v2.15')
+  const all = planReleases(aggregate, { product: 'rancher-manager', releases: 'all' }, yaml)
+  assert.deepEqual(all.releases.map(({ release }) => release.version), ['v2.16', 'v2.15', 'v2.14'])
+})
+
+test('a list of releases uses the landing version, and url_prefix can be set', () => {
+  const ss = { product: { component: 'kubewarden', landing_version: '1.0', url_prefix: 'ss' }, releases: [{ version: '6.0.0', components: { a: '1' } }] }
+  const aggregate = [bucket('shared', 'latest', {}, [releaseFile('suse-security', ss)]), bucket('kubewarden', '1.0')]
+  const plan = planReleases(aggregate, { product: 'suse-security' }, yaml)
+  assert.equal(plan.prefix, 'ss')
+  assert.deepEqual(plan.releases.map(({ release, bucket }) => [release.version, bucket.version]), [['6.0.0', '1.0']])
+})
+
+test('a missing product or product file is an error', () => {
+  assert.throws(() => planReleases([], {}, yaml), /pdf-options.yml has no product/)
+  assert.throws(() => planReleases([bucket('shared', 'latest')], { product: 'x' }, yaml), /no modules\/ROOT\/partials\/releases\/x.yml/)
+})

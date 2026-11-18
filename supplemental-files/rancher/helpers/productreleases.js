@@ -5,10 +5,11 @@
 //
 // A product, for example SUSE Security, is a landing component and some
 // component versions, pinned by product releases. A content repository
-// describes a product in a partial named <product>-release-config.yml, in the
-// latest version of any component. See the file of SUSE Security for the
-// format: shared/modules/en/partials/product-specific/suse-security-release-config.yml
-// in rancher/suse-security-product-docs.
+// describes a product in shared/modules/ROOT/partials/releases/<product>.yml.
+// See the file of SUSE Security for the format: releases/suse-security.yml in
+// rancher/suse-security-product-docs. A product with "releases: versions"
+// (each version of the component is a release) has nothing to change here,
+// so this helper ignores it.
 //
 // For a product, the selectors show the product releases, not the versions
 // of its components. The release-url-layout extension in product-docs-common
@@ -31,23 +32,25 @@
 //
 // Antora loads helpers as virtual modules at <playbook dir>/ui-helpers/<name>.js,
 // so require() finds js-yaml in the playbook node_modules.
-const CONFIG_RX = /^([a-z0-9][a-z0-9-]*)-release-config\.yml$/
+const CONFIG_RX = /^releases\/([a-z0-9][a-z0-9-]*)\.yml$/
 const SEGMENT_RX = /^[a-z][a-z0-9-]*$/
 const RELEASE_RX = /^[0-9A-Za-z][0-9A-Za-z.-]*$/
 const HIDDEN = new Set(['shared'])
 
 function findConfigFiles (contentCatalog) {
   if (!contentCatalog) return []
-  return contentCatalog.findBy({ family: 'partial' }).filter(({ src }) =>
-    CONFIG_RX.test(src.basename) && contentCatalog.getComponent(src.component)?.latest?.version === src.version)
+  return contentCatalog.findBy({ component: 'shared', module: 'ROOT', family: 'partial' }).filter(({ src }) =>
+    CONFIG_RX.test(src.relative) && contentCatalog.getComponent(src.component)?.latest?.version === src.version)
 }
 
 function loadProducts (contentCatalog, parse = (text) => require('js-yaml').load(text)) {
   const products = findConfigFiles(contentCatalog).map((file) => {
-    const { component, version, module, relative, basename } = file.src
-    const source = `${basename} in ${version}@${component}:${module}:partial$${relative}`
-    return validateConfig(parse(file.contents.toString()), source, CONFIG_RX.exec(basename)[1])
-  })
+    const { component, version, module, relative } = file.src
+    const source = `${version}@${component}:${module}:partial$${relative}`
+    const config = parse(file.contents.toString())
+    if (config?.releases === 'versions') return undefined
+    return validateConfig(config, source, CONFIG_RX.exec(relative)[1])
+  }).filter(Boolean)
   // A component belongs to one product only, and products need their own URL prefix.
   const owner = new Map()
   const prefixes = new Map()
@@ -75,10 +78,12 @@ function validateConfig (config, source, name) {
   const product = config.product
   if (!isObject(product)) fail('product must be a map')
   onlyKeys(product, ['component', 'landing_version', 'url_prefix'], 'product')
-  for (const key of ['component', 'landing_version', 'url_prefix']) {
+  for (const key of ['component', 'landing_version']) {
     if (typeof product[key] !== 'string' || !product[key]) fail(`product.${key} must be a string`)
   }
-  if (!SEGMENT_RX.test(product.url_prefix)) fail(`product.url_prefix must match ${SEGMENT_RX}`)
+  // The URL prefix is the product name (the file name), unless the file sets one.
+  const urlPrefix = product.url_prefix ?? name
+  if (typeof urlPrefix !== 'string' || !SEGMENT_RX.test(urlPrefix)) fail(`product.url_prefix must match ${SEGMENT_RX}`)
   if (!Array.isArray(config.releases) || !config.releases.length) fail('releases must be a list with at least one release')
   const versions = new Set()
   const componentNames = new Set([product.component])
@@ -107,7 +112,7 @@ function validateConfig (config, source, name) {
     source,
     component: product.component,
     landingVersion: product.landing_version,
-    urlPrefix: product.url_prefix,
+    urlPrefix,
     releases,
     componentNames,
   }
