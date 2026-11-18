@@ -110,14 +110,15 @@ else
 	@$(MAKE) --no-print-directory pdf-summary
 endif
 
-# List the PDFs in $(PDF_OUT), with the number of pages if pdfinfo is installed.
+# List the PDFs in $(PDF_OUT), with the number of printed pages if pdfinfo is
+# installed.
 pdf-summary:
 	@echo ""
 	@echo "PDFs in $(PDF_OUT)/ (log: tmp/pdf-build.log):"
 	@found=; for f in $(PDF_OUT)/*.pdf; do \
 		[ -e "$$f" ] || continue; found=1; \
 		pages=$$(pdfinfo "$$f" 2>/dev/null | sed -n 's/^Pages:[[:space:]]*//p'); \
-		echo "  $$f  ($${pages:+$$pages pages, }$$(du -h "$$f" | cut -f1))"; \
+		echo "  $$f  ($${pages:+$$pages printed pages, }$$(du -h "$$f" | cut -f1))"; \
 	done; [ -n "$$found" ] || echo "  none"
 
 local-pdf:

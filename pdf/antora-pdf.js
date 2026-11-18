@@ -184,7 +184,7 @@ module.exports.register = function ({ config = {}, playbook }) {
       }
       const { lang, release, outPath, title, pages } = pdf
       manifest.pdfs.push({ file, lang, release, outPath, title, pages })
-      logger.info(`PDF: ${path.join(outDir, file)} (${Object.keys(pages).length} pages)`)
+      logger.info(`PDF: ${path.join(outDir, file)} (${Object.keys(pages).length} Antora pages)`)
     }
     fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 1) + '\n')
     logger.info('PDF run: the PDFs are written; the run stops before the site is made')

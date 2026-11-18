@@ -50,7 +50,9 @@ In CI, use mode `deliverable`, and run `make pdf PDF_PLAYBOOK=remote-product-pla
 - `make pdf-tools`: installs the tools in `tmp/pdf-tools/`. It installs again only when a lock file or the font version changes.
 - `make pdf`: the PDF run with `PDF_PLAYBOOK` (default `local-product-playbook.yml`). The run stops after the PDFs are written. It does not compose the HTML pages, build the search index or publish the site.
 - `make local-pdf`: `make pdf` with `PDF_LOCAL_PLAYBOOK` (default `local-product-playbook.yml`).
-- `make pdf-summary`: lists the PDFs in `build/pdf/` (or `output_dir`), with the number of pages and the size. `make pdf` runs it at the end.
+- `make pdf-summary`: lists the PDFs in `build/pdf/` (or `output_dir`), with the number of printed pages and the size. `make pdf` runs it at the end. The number of printed pages comes from `pdfinfo` (package `poppler-utils`). If `pdfinfo` is not installed, the list shows only the size.
+
+The PDF run also logs a line for each PDF, for example `PDF: build/pdf/suse-security-6.0.0-en.pdf (214 Antora pages)`. This number is the number of Antora pages in the PDF, not the number of printed pages. The site run links each of these pages to its start in the PDF.
 
 To test a dsc-style-bundle checkout that is not the submodule, set `DSC`, for example `make local-pdf DSC=../dsc-style-bundle`.
 
