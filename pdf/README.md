@@ -1,20 +1,24 @@
 # PDF build
 
-This folder contains an optional PDF build for product documentation with releases. The PDF build is off until a product repository activates it.
+This folder contains an optional PDF build for product documentation. The PDF build is off until a product repository activates it.
 
-For each release and language, the build makes one PDF: the landing pages of the release, then each component version that the release pins. Web sites do not publish this folder, because it is not in `supplemental-files/`.
+For each release and language, the build makes one PDF: the landing pages of the release, then each component version that the release pins. For a product whose releases are the versions of one component, the PDF is that component version. Web sites do not publish this folder, because it is not in `supplemental-files/`.
 
 ## Activate the PDF build
 
-1. In the product repository, add `pdf-options.yml` in the repository root. Refer to [Options](#options).
-2. In the product `Makefile`, include `pdf.mk`:
+1. In the product repository, add the product file. Refer to [Product file](#product-file).
+2. Add `pdf-options.yml` in the repository root. Refer to [Options](#options).
+3. In the product `Makefile`, include `pdf.mk`. Include it after the first target, so that the default target does not change. If the playbooks have other names, set them first:
 
    ```make
+   PDF_PLAYBOOK ?= playbook-product-local.yml        # make pdf (default: local-product-playbook.yml)
+   PDF_LOCAL_PLAYBOOK ?= playbook-product-local.yml  # make local-pdf (default: local-product-playbook.yml)
+   PDF_SITE_DIR ?= build/site-product-local          # the site to copy the PDFs into (default: build/site)
    DSC ?= dsc-style-bundle
    -include $(DSC)/pdf/pdf.mk
    ```
 
-3. In the site build targets, add `$(PDF_ANTORA_ARGS)` to the Antora command:
+4. In the site build targets, add `$(PDF_ANTORA_ARGS)` to the Antora command:
 
    ```make
    npx antora $(PDF_ANTORA_ARGS) ... local-product-playbook.yml
@@ -45,16 +49,49 @@ In CI, use mode `deliverable`, and run `make pdf PDF_PLAYBOOK=remote-product-pla
 
 - `make pdf-tools`: installs the tools in `tmp/pdf-tools/`. It installs again only when a lock file or the font version changes.
 - `make pdf`: the PDF run with `PDF_PLAYBOOK` (default `local-product-playbook.yml`). The run stops after the PDFs are written. It does not compose the HTML pages, build the search index or publish the site.
-- `make local-pdf`: `make pdf` with `local-product-playbook.yml`.
+- `make local-pdf`: `make pdf` with `PDF_LOCAL_PLAYBOOK` (default `local-product-playbook.yml`).
 - `make pdf-summary`: lists the PDFs in `build/pdf/` (or `output_dir`), with the number of pages and the size. `make pdf` runs it at the end.
 
 To test a dsc-style-bundle checkout that is not the submodule, set `DSC`, for example `make local-pdf DSC=../dsc-style-bundle`.
+
+## Product file
+
+The product file describes the releases of a product. It is in the `shared` component of the product repository, at `shared/modules/ROOT/partials/releases/<product>.yml`. `<product>` is a short name, for example `suse-security`, and it is also the URL prefix of the PDFs. In a site with many repositories, all `shared` components merge, so each product needs its own name.
+
+Three tools read the file: the PDF build, the release selector (`supplemental-files/rancher/helpers/productreleases.js`), and the `release-url-layout` extension in product-docs-common.
+
+A product with releases that pin component versions (SUSE Security):
+
+```yaml
+product:
+  component: kubewarden          # the landing component
+  landing_version: '1.0'         # the version of the landing component for each release
+  url_prefix: suse-security      # optional; default: the product name
+releases:                        # newest first
+  - version: '6.0.0'
+    prerelease: false            # optional
+    components:
+      admission-controller: '1.38'
+      sbom-scanner: '0.13'
+```
+
+The PDF is the landing pages of the release, then each pinned component version.
+
+A product whose releases are the versions of one component (Rancher Manager):
+
+```yaml
+product:
+  component: rancher-manager
+releases: versions
+```
+
+Each version of the component is a release, newest first. A version with `prerelease` in its `antora.yml` is a prerelease. The PDF is the nav of that version. The release selector and `release-url-layout` ignore this kind of product, so the site does not change.
 
 ## Options
 
 ```yaml
 mode: local                     # none, local, or deliverable
-release_config: suse-security-release-config.yml   # the release config of release-url-layout
+product: suse-security         # the product file: shared/modules/ROOT/partials/releases/<product>.yml
 releases: latest                # latest (newest release that is not a prerelease), all, or a list
 languages: [en, ja, zh]         # one PDF for each language
 fallback_language: en           # for components without a nav in the language
@@ -110,7 +147,7 @@ You must have Ruby with Bundler, Node.js, `curl`, `unzip`, and `sha256sum`. merm
 
 ## Limitations
 
-- The build supports only products with a release config.
+- The build needs a product file in the `shared` component.
 - Only `ja` and `zh` have CJK fonts. Other CJK languages, for example `ko`, need a font in `pdf.mk` and `antora-pdf.js`.
 - In a mixed-language PDF, a link in page text to a page of the fallback language stays text, if that page is not in the PDF.
 - An xref to a page that is not in the PDF nav stays text, if `site_url` is not set. With `site_url`, it is a web link to that site. `pdf.mk` gives `site_url` only to the PDF run, with `--url`, so the site build does not change.

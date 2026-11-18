@@ -135,24 +135,39 @@ test('validation rejects a bad configuration', () => {
   assert.throws(bad((c) => ({ ...c, releases: [{ ...r600, prerelease: 'yes' }] })), /prerelease must be true or false/)
 })
 
+// A release file: shared/modules/ROOT/partials/<relative>.
+const file = (relative, data) => ({
+  src: { component: 'shared', version: 'latest', module: 'ROOT', relative, basename: relative.split('/').pop() },
+  contents: Buffer.from(JSON.stringify(data)),
+})
+const catalog = (...files) => ({
+  findBy: () => files,
+  getComponent: () => ({ latest: { version: 'latest' } }),
+})
+
 test('two products cannot share a component or a URL prefix', () => {
-  const file = (component, basename, data) => ({
-    src: { component, version: '1', module: 'en', relative: basename, basename },
-    contents: Buffer.from(JSON.stringify(data)),
-  })
-  const catalog = (...files) => ({
-    findBy: () => files,
-    getComponent: () => ({ latest: { version: '1' } }),
-  })
   const a = config(r600)
   const b = { product: { component: 'other', landing_version: '1', url_prefix: 'other' }, releases: [r600] }
-  assert.throws(() => loadProducts(catalog(file('x', 'a-release-config.yml', a), file('y', 'b-release-config.yml', b)), JSON.parse),
-    /admission-controller is in a-release-config.yml .* and in b-release-config.yml/)
+  assert.throws(() => loadProducts(catalog(file('releases/a.yml', a), file('releases/b.yml', b)), JSON.parse),
+    /admission-controller is in .*releases\/a.yml and in .*releases\/b.yml/)
   const c = { product: { component: 'other', landing_version: '1', url_prefix: 'suse-security' }, releases: [{ version: '1', components: { z: '1' } }] }
-  assert.throws(() => loadProducts(catalog(file('x', 'a-release-config.yml', a), file('y', 'c-release-config.yml', c)), JSON.parse),
+  assert.throws(() => loadProducts(catalog(file('releases/a.yml', a), file('releases/c.yml', c)), JSON.parse),
     /url_prefix suse-security is in/)
   assert.deepEqual(loadProducts(catalog(), JSON.parse), [])
-  assert.deepEqual(loadProducts(catalog(file('x', 'notes.yml', {})), JSON.parse), [])
+  assert.deepEqual(loadProducts(catalog(file('notes.yml', {})), JSON.parse), [])
+  assert.deepEqual(loadProducts(catalog(file('releases/sub/x.yml', a)), JSON.parse), [])
+})
+
+test('the URL prefix is the product name unless the file sets one', () => {
+  const { url_prefix: _, ...product } = config(r600).product
+  const [p] = loadProducts(catalog(file('releases/suse-security.yml', { product, releases: [r600] })), JSON.parse)
+  assert.equal(p.name, 'suse-security')
+  assert.equal(p.urlPrefix, 'suse-security')
+})
+
+test('a product with releases: versions is ignored', () => {
+  const rancher = { product: { component: 'rancher-manager' }, releases: 'versions' }
+  assert.deepEqual(loadProducts(catalog(file('releases/rancher-manager.yml', rancher)), JSON.parse), [])
 })
 
 test('the selector lists the component versions of each release, the current release shown', () => {
