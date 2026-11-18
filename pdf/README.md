@@ -154,6 +154,7 @@ You must have Ruby with Bundler, Node.js, `curl`, `unzip`, and `sha256sum`. merm
 - asciidoctor-pdf cuts a table cell that is longer than one page. The theme uses a 9 pt table font, so that the long cells of the CRD references fit.
 - Only xref targets in the landing pages can use attributes.
 - In a nav file, the PDF build expands only `include::partial$<file>[]` and includes with `tag=` or `tags=`. An include with other attributes, or with tag wildcards (`*`) or negations (`!`), is not expanded, and its entries are not in the PDF.
+- Antora Assembler rewrites inline macros one line at a time. If an inline macro (`image:`, `xref:`) continues on the next line, the PDF build does not process it. Then the image is missing, or the link is not correct. Keep each inline macro on one line. Refer to the [Assembler known issues](https://docs.antora.org/assembler/latest/known-issues/).
 
 ## Follow-ups
 
