@@ -115,6 +115,7 @@ The PDF run uses `@antora/pdf-extension` from the product repository:
 
 1. `contentAggregated`: `releaseNav` makes a nav file for each release and language in the landing copy of the release. The site menu does not show it.
 2. `contentClassified`: replaces attributes in the xref targets of the landing pages, for example `{landing-admc-ref}`. The assembler resolves xrefs before it replaces attributes.
+   Also `contentClassified` (`svgsToPng`): asciidoctor-pdf cannot show HTML labels (`<foreignObject>`, the draw.io default) or load remote images in an SVG. Chromium (from mermaid-cli) draws these SVGs of the PDF component versions as PNG, at two times the SVG size. The PNG replaces the contents of the SVG file in this run only, so the file name and the site do not change. On an error, the SVG stays as it is, with a warning.
 3. `navigationBuilt`: one assembler run for each language. `takeExports` keeps each PDF, its URL `/<prefix>/<release>/<lang>/<prefix>-<release>-<lang>.pdf`, and the named destination of each page.
 4. `navigationBuilt`, after the assembler runs: writes the PDFs and `pdf-manifest.json` to `build/pdf/`. Then `this.stop()` ends the run, so Antora does not compose the pages, and the other extensions of the playbook (for example the search index) do not run after this step.
 
@@ -157,6 +158,7 @@ You must have Ruby with Bundler, Node.js, `curl`, `unzip`, and `sha256sum`. merm
 - Only xref targets in the landing pages can use attributes.
 - In a nav file, the PDF build expands only `include::partial$<file>[]` and includes with `tag=` or `tags=`. An include with other attributes, or with tag wildcards (`*`) or negations (`!`), is not expanded, and its entries are not in the PDF.
 - Antora Assembler rewrites inline macros one line at a time. If an inline macro (`image:`, `xref:`) continues on the next line, the PDF build does not process it. Then the image is missing, or the link is not correct. Keep each inline macro on one line. Refer to the [Assembler known issues](https://docs.antora.org/assembler/latest/known-issues/).
+- An SVG with HTML labels or remote images is a PNG in the PDF: sharp in print, but not vector. The remote images need network access in the PDF run. For vector text, export the diagram from draw.io with *Formatted Text* off, or with *Convert labels to SVG* on.
 
 ## Follow-ups
 

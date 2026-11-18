@@ -100,3 +100,30 @@ test('a missing product or product file is an error', () => {
   assert.throws(() => planReleases([], {}, yaml), /pdf-options.yml has no product/)
   assert.throws(() => planReleases([bucket('shared', 'latest')], { product: 'x' }, yaml), /no modules\/ROOT\/partials\/releases\/x.yml/)
 })
+
+// SVG images that prawn-svg cannot draw: HTML labels and remote images.
+const { needsChromium, svgSize, pngInSvg } = require('../pdf/antora-pdf.js')
+
+test('needsChromium finds HTML labels and remote images', () => {
+  assert.equal(needsChromium('<svg><foreignObject><div>x</div></foreignObject></svg>'), true)
+  assert.equal(needsChromium('<svg><image xlink:href="https://app.diagrams.net/a.svg"/></svg>'), true)
+  assert.equal(needsChromium('<svg><image href="data:image/png;base64,AA"/></svg>'), false)
+  assert.equal(needsChromium('<svg><text>foreignObject</text></svg>'), false)
+})
+
+test('svgSize reads width and height, else the viewBox', () => {
+  assert.deepEqual(svgSize('<svg width="1172px" height="1117px" viewBox="-0.5 -0.5 1172 1117">'), { width: 1172, height: 1117 })
+  assert.deepEqual(svgSize('<svg width="200" height="100.5">'), { width: 200, height: 101 })
+  assert.deepEqual(svgSize('<svg viewBox="0 0 300 150">'), { width: 300, height: 150 })
+  assert.deepEqual(svgSize('<svg width="600" viewBox="0 0 300 150">'), { width: 600, height: 300 })
+  assert.deepEqual(svgSize('<svg width="100%" viewBox="0 0 300 150">'), { width: 300, height: 150 })
+  assert.equal(svgSize('<svg width="100%">'), null)
+  assert.equal(svgSize('<svg>'), null)
+})
+
+test('pngInSvg wraps the PNG as a data URI with the same size', () => {
+  const svg = pngInSvg(Buffer.from('PNG'), 300, 150)
+  assert.match(svg, /^<svg [^>]*width="300" height="150" viewBox="0 0 300 150">/)
+  assert.match(svg, /xlink:href="data:image\/png;base64,UE5H"/)
+  assert.equal(svgSize(svg).width, 300)
+})
