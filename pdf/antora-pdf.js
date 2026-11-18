@@ -10,7 +10,8 @@
 //   selected release and language, it makes one PDF: the landing pages of the
 //   release, then each component version that the release pins. It writes the
 //   PDFs and pdf-manifest.json to build/pdf/, and then stops. It does not
-//   publish a site.
+//   publish a site. SVG images with HTML labels or remote images become PNG
+//   in the PDF (svgsToPng).
 // - The site run, in mode deliverable only. It reads pdf-manifest.json, adds
 //   the PDFs to the site, and gives each page in a PDF the page-pdf-url,
 //   page-pdf-anchor, and page-pdf-title attributes for the toolbar link. It
@@ -143,6 +144,23 @@ module.exports.register = function ({ config = {}, playbook }) {
         if (out !== text) f.contents = Buffer.from(out)
       }
     }
+  })
+
+  // Step 2b: asciidoctor-pdf (prawn-svg) cannot show HTML labels
+  // (<foreignObject>, the draw.io default) or load remote images in an SVG.
+  // Chromium draws these SVGs as PNG, only in this run: the site run has its
+  // own content catalog and keeps the SVG. The file name does not change.
+  this.once('contentClassified', async ({ contentCatalog }) => {
+    const versions = new Set()
+    for (const { release } of plan.releases) {
+      versions.add(`${release.version}@${plan.landing}`)
+      for (const [name, version] of Object.entries(release.components)) versions.add(`${version}@${name}`)
+    }
+    const files = contentCatalog
+      .findBy({ family: 'image' })
+      .filter((f) => f.src.extname === '.svg' && versions.has(`${f.src.version}@${f.src.component}`))
+      .filter((f) => needsChromium(f.contents.toString()))
+    if (files.length) await svgsToPng(files, toolsDir, mermaidFiles.puppeteer, logger)
   })
 
   // Step 3: one assembler run for each language. After each run, take the
@@ -432,6 +450,94 @@ function writeMermaidFiles (toolsDir, fontsDir) {
   return { css, puppeteer }
 }
 
+// True if prawn-svg cannot draw the SVG correctly: it has HTML labels
+// (<foreignObject>) or an image with a remote URL.
+function needsChromium (svg) {
+  return /<foreignObject[\s>]/.test(svg) || /<image\b[^>]*\bhref\s*=\s*["']https?:/i.test(svg)
+}
+
+// The size of an SVG in CSS pixels: from width and height (px or no unit),
+// else from the viewBox. Null if there is no size, for example width="100%".
+function svgSize (svg) {
+  const root = svg.match(/<svg\b[^>]*>/i)?.[0] || ''
+  const attr = (name) => root.match(new RegExp(`\\s${name}\\s*=\\s*["']([^"']*)["']`, 'i'))?.[1]
+  const px = (value) => (/^\s*[\d.]+\s*(px)?\s*$/i.test(value || '') ? parseFloat(value) : NaN)
+  let width = px(attr('width'))
+  let height = px(attr('height'))
+  const box = (attr('viewBox') || '').trim().split(/[\s,]+/).map(Number)
+  if (box.length === 4 && box[2] > 0 && box[3] > 0) {
+    if (!(width > 0) && !(height > 0)) [width, height] = [box[2], box[3]]
+    else if (!(width > 0)) width = (height * box[2]) / box[3]
+    else if (!(height > 0)) height = (width * box[3]) / box[2]
+  }
+  return width > 0 && height > 0 ? { width: Math.ceil(width), height: Math.ceil(height) } : null
+}
+
+// An SVG with the PNG as its only content. prawn-svg draws data URIs.
+function pngInSvg (png, width, height) {
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ` +
+    `width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
+    `<image width="${width}" height="${height}" xlink:href="data:image/png;base64,${png.toString('base64')}"/></svg>`
+  )
+}
+
+// Draw each SVG in Chromium (the Chromium of mermaid-cli) and replace its
+// contents with pngInSvg. Files with the same contents (for example the copy
+// of an image in each language module) are drawn one time. On an error, keep
+// the SVG and warn.
+async function svgsToPng (allFiles, toolsDir, puppeteerConfig, logger) {
+  const copies = new Map() // contents -> files
+  for (const f of allFiles) {
+    const key = f.contents.toString()
+    copies.has(key) ? copies.get(key).push(f) : copies.set(key, [f])
+  }
+  const files = [...copies.values()].map((group) => group[0])
+  const MAX = 4000 // CSS pixels on each side
+  const SCALE = 2 // device pixels for each CSS pixel, sharp in print
+  let browser
+  try {
+    const puppeteer = createRequire(path.join(toolsDir, 'package.json'))('puppeteer')
+    browser = await puppeteer.launch({ headless: 'new', ...JSON.parse(fs.readFileSync(puppeteerConfig, 'utf8')) })
+  } catch (err) {
+    return logger.warn(`no Chromium (${err.message}): ${files.length} SVG images with HTML labels or remote images stay as they are`)
+  }
+  let done = 0
+  try {
+    const page = await browser.newPage()
+    for (const file of files) {
+      const svg = file.contents.toString()
+      const name = `${file.src.version}@${file.src.component}:${file.src.module}:image$${file.src.relative}`
+      try {
+        let size = svgSize(svg)
+        if (!size) {
+          size = { width: 800, height: 600 }
+          logger.warn(`${name}: no SVG size, 800 x 600 is used`)
+        }
+        const width = Math.min(size.width, MAX)
+        const height = Math.min(size.height, MAX)
+        await page.setViewport({ width, height, deviceScaleFactor: SCALE })
+        await page.goto(`data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`, {
+          waitUntil: 'networkidle0',
+          timeout: 30000,
+        })
+        const png = await page.screenshot({ type: 'png', omitBackground: true, clip: { x: 0, y: 0, width, height } })
+        const contents = Buffer.from(pngInSvg(png, width, height))
+        for (const copy of copies.get(svg)) copy.contents = contents
+        logger.debug(`${name}: drawn as PNG`)
+        done++
+      } catch (err) {
+        logger.warn(`${name}: not drawn as PNG (${err.message}); the SVG stays as it is`)
+      }
+    }
+  } finally {
+    await browser.close()
+  }
+  logger.info(
+    `PDF: ${done} of ${files.length} SVG images with HTML labels or remote images drawn as PNG (${allFiles.length} files with copies)`
+  )
+}
+
 // A theme for a CJK language: the SUSE theme, with the Noto font as fallback
 // font for the characters that SUSE does not have.
 function writeCjkTheme (toolsDir, lang, font) {
@@ -528,3 +634,6 @@ function formatNow (now = new Date()) {
 module.exports.expandNavIncludes = expandNavIncludes
 module.exports.planReleases = planReleases
 module.exports.compareVersions = compareVersions
+module.exports.needsChromium = needsChromium
+module.exports.svgSize = svgSize
+module.exports.pngInSvg = pngInSvg
