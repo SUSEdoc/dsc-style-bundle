@@ -7,16 +7,24 @@
   Diagrams use the SUSE font, as the PDF diagrams do. mermaid measures the
   labels when it draws, so the script waits for the font first.
 
+  flowchart.wrappingWidth: the labels of the diagrams have explicit line
+  breaks. With the default width, mermaid breaks a long word, for example
+  "OpenTelemetry", in two. pdf/mermaid/mermaid-config.json has the same
+  setting.
+
+  Keep the mermaid version the same as the mermaid-cli major version in
+  pdf/package.json.
+
   A site that uses @sntke/antora-mermaid-extension replaces this partial with
   its own script, which has the same stem.
 --}}
 <script type="module">
   const diagrams = document.querySelectorAll(".mermaid");
   if (diagrams.length) {
-    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@10.9.6/dist/mermaid.esm.min.mjs");
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@12.3.0/dist/mermaid.esm.min.mjs");
     const fontFamily = '"SUSE", sans-serif';
     await document.fonts.load('16px "SUSE"').catch(() => {});
-    mermaid.initialize({ startOnLoad: false, fontFamily, themeVariables: { fontFamily } });
+    mermaid.initialize({ startOnLoad: false, fontFamily, themeVariables: { fontFamily }, flowchart: { wrappingWidth: 400 } });
     await mermaid.run({ nodes: diagrams });
   }
 </script>
