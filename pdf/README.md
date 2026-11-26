@@ -4,6 +4,17 @@ This folder contains an optional PDF build for product documentation. The PDF bu
 
 For each release and language, the build makes one PDF: the landing pages of the release, then each component version that the release pins. For a product whose releases are the versions of one component, the PDF is that component version. Web sites do not publish this folder, because it is not in `supplemental-files/`.
 
+## Requirements
+
+- GNU Make 4.3 or later. With an older Make, for example 3.81 on macOS, the build stops with an error about `$(shell ...)`. On macOS, install a new Make with `brew install make`, and run `gmake` in place of `make`.
+- Ruby with Bundler, Node.js, `curl`, `unzip`, and `sha256sum`.
+- Chromium and the libraries that it needs. mermaid-cli and the SVG step of the PDF run use it. If there is no installed Chromium, npm downloads one. On a minimal Linux or on WSL, the downloaded Chromium can fail to start because libraries are missing. To install them, run `npx puppeteer browsers install chrome --install-deps`.
+- `python3` with `venv`, only for `ja` and `zh` (the CJK fonts).
+
+On macOS, install `sha256sum` with `brew install coreutils`.
+
+On WSL, clone the repository in the Linux file system, not in `/mnt/c`. On `/mnt/c`, the build is much slower, and Git for Windows can change the line endings. Then the scripts fail.
+
 ## Activate the PDF build
 
 1. In the product repository, add the product file. Refer to [Product file](#product-file).
@@ -145,8 +156,6 @@ The toolbar link is in `supplemental-files/rancher/partials/toolbar.hbs`. It ope
 - In a mixed-language PDF, a nav xref to a page in the fallback language goes to the page in the PDF language, if there is one.
 - A page can be in more than one PDF. Its toolbar link goes to the PDF in the language of the page, else to the PDF of the fallback language.
 - For `ja` and `zh`, `antora-pdf.js` writes a theme in `tmp/pdf-tools/` that adds the Noto font as fallback font, and sets `scripts=cjk` for line breaks between characters.
-
-You must have Ruby with Bundler, Node.js, `curl`, `unzip`, and `sha256sum`. mermaid-cli uses the installed Chromium. If there is no Chromium, npm downloads one.
 
 ## Limitations
 
